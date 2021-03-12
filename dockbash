@@ -1,0 +1,93 @@
+#!/bin/bash
+set -e
+mkdir -p /home/$USER/dfs
+if [ -f "/home/$USER/.defaultshell" ]; then
+	DEFAULT="$(cat /home/$USER/.defaultshell)"
+else
+	DEFAULT="SELECT"
+fi
+
+if [ "$1" == "switch" ]; then
+	DEFAULT="SELECT"
+fi
+
+if [ "$DEFAULT" == "SELECT" ]; then
+	clear
+	echo "---- Dock Station ----"
+	echo "- Please select an operating system to provision into:"
+	echo "-"
+	echo "- 1. Ubuntu:18.04"
+	echo "- 2. Ubuntu:20.04"
+	echo "- 3. CentOS 7"
+	echo "- 4. CentOS 8"
+	echo "- 5. Debian 10"
+	echo "- 6. Debian 9"
+	echo "- P. CHANGE USER PASSWORD"
+	echo "- H. HELP"
+	echo "-"
+	read -p "- Pick: " SELECTION
+	echo "You picked: $SELECTION"
+	if [ "$SELECTION" == "P" ]; then
+		echo "This will change your user account password for signing into this machine (dockbox). Once entered, you will have to reconnect."
+		passwd
+		echo "Exiting... Please reconnect."
+		exit
+	fi
+	if [ "$SELECTION" == "H" ]; then
+		echo "You can pick an operating system from the menu using the numbers given (1-n). It will launch into that machine."
+		echo "This machine only keeps the home directory, root directory and sharedfs directory as persistent."
+		echo "/sharedfs/ is shared between all your operating systems."
+		echo ""
+		echo "Each system comes with a default set of installed dependencies, if you need any custom please notify the sysadmins and they can be added for you custom."
+		echo ""
+		echo "--- Please Reconnect ---"
+		exit
+	fi
+	echo "----"
+	echo "Would you like to make this your indefinite selection by default?"
+	read -p "- Pick (y/N): " PICKER
+	if [ "$PICKER" == "yes" ]; then
+		echo "Wrote."
+		echo "$SELECTION" > /home/$USER/.defaultshell
+	fi
+	if [ "$PICKER" == "y" ]; then
+		echo "Wrote."
+		echo "$SELECTION" > /home/$USER/.defaultshell
+	fi
+	clear
+	DEFAULT="$SELECTION"
+fi
+
+mkdir -p /home/$USER/dfs/$DEFAULT/root # make a default file system for the guest OS in case it doesn't exist already
+mkdir -p /home/$USER/dfs/$DEFAULT/home
+mkdir -p /home/$USER/sharedfs # make a default shared fs if it doesn't exist already
+
+if [ "$DEFAULT" == "1" ]; then
+	docker run --rm --hostname "$USER.lan" -v /home/$USER/dfs/$DEFAULT/root:/root -v /home/$USER/dfs/$DEFAULT/home:/home -v /home/$USER/sharedfs:/sharedfs -it coreubuntu1804:latest
+	exit 1
+fi
+
+if [ "$DEFAULT" == "2" ]; then
+	docker run --rm --hostname "$USER.lan" -v /home/$USER/dfs/$DEFAULT/root:/root -v /home/$USER/dfs/$DEFAULT/home:/home -v /home/$USER/sharedfs:/sharedfs -it coreubuntu2004:latest
+	exit 1
+fi
+
+if [ "$DEFAULT" == "3" ]; then
+	docker run --rm --hostname "$USER.lan" -v /home/$USER/dfs/$DEFAULT/root:/root -v /home/$USER/dfs/$DEFAULT/home:/home -v /home/$USER/sharedfs:/sharedfs -it centos7:latest
+	exit 1
+fi
+
+if [ "$DEFAULT" == "4" ]; then
+	docker run --rm --hostname "$USER.lan" -v /home/$USER/dfs/$DEFAULT/root:/root -v /home/$USER/dfs/$DEFAULT/home:/home -v /home/$USER/sharedfs:/sharedfs -it centos8:latest
+	exit 1
+fi
+
+if [ "$DEFAULT" == "5" ]; then
+	docker run --rm --hostname "$USER.lan" -v /home/$USER/dfs/$DEFAULT/root:/root -v /home/$USER/dfs/$DEFAULT/home:/home -v /home/$USER/sharedfs:/sharedfs -it debian10:latest
+	exit 1
+fi
+
+if [ "$DEFAULT" == "6" ]; then
+	docker run --rm --hostname "$USER.lan" -v /home/$USER/dfs/$DEFAULT/root:/root -v /home/$USER/dfs/$DEFAULT/home:/home -v /home/$USER/sharedfs:/sharedfs -it debian9:latest
+	exit 1
+fi
